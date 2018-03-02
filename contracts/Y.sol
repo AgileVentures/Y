@@ -14,16 +14,16 @@ contract Y {
         payee = msg.sender;
     }
 
-    // function payAndDonate(address payee, address donee) public payable {
-        // uint donation = (msg.value * 25) / 100;
-        // payee.transfer(msg.value - donation);
-        // donee.transfer(donation);
-    // }
+    function payAndDonate(uint num, uint denom, address donee) public payable { // TODO Is returning bool necessary?
+        require(num == donationProportion.num && denom == donationProportion.denom);
+        uint donation = (msg.value * donationProportion.num) / donationProportion.denom;
+        payee.transfer(msg.value - donation);
+        donee.transfer(donation);
+    }
 
-    function setDonationProportion(uint num, uint denom) public returns (bool success) {
+    function setDonationProportion(uint num, uint denom) public {
         require(0 < num && num < denom); // 0 < num/denom < 1
         require(msg.sender == payee);
         donationProportion = Proportion(num, denom);
-        return true;
     }
 }

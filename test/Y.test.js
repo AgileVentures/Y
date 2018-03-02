@@ -59,50 +59,39 @@ contract("Y", accounts => {
   });
 
   // The donation is what the payer expected it would be.
-  // The donation proportion can be changed between the payer calling to pay and the function executing.
+  // (The donation proportion can be changed between the payer calling to pay and the function executing.)
 
-  // Test that the function throws if the donation proportion isn't what the payer is expecting.
+  it("throws if the donation proportion is not what payer is expecting", async () => {
+    // Payer is expecting 30% but the contract is set at 25% on creation
+    assert.isRejected(y.payAndDonate(30, 100));
+  });
 
-  // The payer can pay (payment - donation) and donate (payment * donation proportion expected by payer).
+  // Verify payAndDonate changes balances on payee and donee/s as expected
+  it("transfers 75% of payment to payee and 25% to donee", async () => {
+    const balances = async () => {
+      return {
+        payee: await web3.eth.getBalance(payee),
+        donee: await web3.eth.getBalance(donee)
+      };
+    };
+    const oneEther = web3.toWei(1, "ether");
+    const donation = web3.toWei(0.25, "ether");
+    const balancesBefore = await balances();
 
-  // it("should change the balances as expected", async () => {
-  //   const oneEther = web3.toWei(1, "ether");
-  //   const donation = web3.toWei(0.25, "ether");
-  //
-  //   // payer: balance -> balance - value,
-  //   // payee: balance -> balance + value - donation,
-  //   // donee: balance -> balance + donation
-  //
-  //   // get each of the balances before the tx
-  //   const balances = async () => {
-  //     return {
-  //       payer: await web3.eth.getBalance(payer),
-  //       payee: await web3.eth.getBalance(payee),
-  //       donee: await web3.eth.getBalance(donee)
-  //     };
-  //   };
-  //
-  //   const before = await balances();
-  //
-  //   // do the tx
-  //   await y.payAndDonate(payee, donee, {
-  //     from: payer,
-  //     value: oneEther
-  //   });
-  //   // get each of the balances after the tx
-  //   const after = await balances();
-  //
-  //   // console.log((await web3.eth.getBalance(y.address)).toNumber() / 10 ** 18);
-  //   // console.log((await web3.eth.getBalance(payer)).toNumber() / 10 ** 18);
-  //   // console.log((await web3.eth.getBalance(payee)).toNumber() / 10 ** 18);
-  //   // console.log((await web3.eth.getBalance(donee)).toNumber() / 10 ** 18);
-  //
-  //   // compare before and after
-  //   assert.isTrue(after.payer.lessThan(before.payer.minus(oneEther)), "payer"); // TODO take gas into account
-  //   assert.isTrue(
-  //     after.payee.equals(before.payee.plus(oneEther - donation)),
-  //     "payee"
-  //   );
-  //   assert.isTrue(after.donee.equals(before.donee.plus(donation)), "donee");
-  // });
+    await y.payAndDonate(25, 100, donee, { from: payer, value: oneEther });
+
+    const balancesAfter = await balances();
+    assert.isTrue(
+      balancesAfter.payee.equals(
+        balancesBefore.payee.plus(oneEther - donation)
+      ), // TODO BigNumber arithmetic
+      "payee"
+    );
+    assert.isTrue(
+      balancesAfter.donee.equals(balancesBefore.donee.plus(donation)),
+      "donee"
+    );
+  });
+
+  // num * msg.value doesn't overflow
 });
