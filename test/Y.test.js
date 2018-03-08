@@ -67,6 +67,7 @@ contract("Y", accounts => {
   });
 
   // Verify payAndDonate changes balances on payee and donee/s as expected
+  // TODO random amounts and donation proportions
   it("transfers 75% of payment to payee and 25% to donee", async () => {
     const balances = async () => {
       return {
@@ -93,5 +94,15 @@ contract("Y", accounts => {
     );
   });
 
-  // num * msg.value doesn't overflow
+  it("throws if msg.value * num overflows", async () => {
+    const maxSolidityNum = 2 ** 256 - 1;
+
+    const num = maxSolidityNum / 4;
+    const denom = maxSolidityNum / 2;
+    await y.setDonationProportion(num, denom, { from: payee });
+
+    assert.isRejected(
+      y.payAndDonate(num, denom, donee, { from: payer, value: 5 })
+    );
+  });
 });
