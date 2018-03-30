@@ -2,7 +2,7 @@
 
 Y is a new way to fund public services: you choose which services are funded, and where they are funded (i.e. not just in your own country, but anywhere in the world). There are no tax returns to do.
 
-Y could raise enough money to take over from the tax system, and let enough people decide how public money should be spent to take over from centralised government. Enough money could cross national borders that national borders would be obsolete.
+Y could raise enough money to take over from the tax system, and let enough people decide how public money should be spent to take over from centralised government. Enough money could cross national borders that national borders would be obsolete. I believe Y may be a solution for world peace.
 
 ## How it works
 
