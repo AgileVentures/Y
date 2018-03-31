@@ -20,6 +20,6 @@ This project practises test-driven development. I'm also investigating formal me
 
 ### Plan right now
 
-Prove that Ether can't get stuck in the contract via the payAndDonate function, or mitigate this problem with a function to return stuck Ether to the payer.
+Prove that Ether can't get stuck in the contract via the payAndDonate function, or mitigate this problem with a function to return any stuck Ether to the payer.
 
 Find sellers who are already accepting Ether, and ask them if they'd like to use Y.
