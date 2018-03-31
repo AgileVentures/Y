@@ -16,7 +16,7 @@ Right now, Y is an Ethereum smart contract. That may change as better blockchain
 
 There are two layers: the core smart contract, written in Solidity, and the interface around it, so that it's nicer to use (for example, Solidity doesn't work with decimals, so the interface changes them to a numerator and denominator). The interface happens to be written in JavaScript, so that it can be called from a web app, but it could be written in any language that calls Ethereum.
 
-This project practises test-driven development. I'm also investigating formal methods, like [K](https://runtimeverification.com/blog/?p=496), so that we can prove properties of the contract for higher assurance. The project is part of [AgileVentures](https://www.agileventures.org/projects/y), and we mob program on it every [Thursday at 5pm UTC](https://www.agileventures.org/events/y-mob-programming).
+This project practises test-driven development. I'm also investigating formal methods, like [K](https://runtimeverification.com/blog/?p=496), so that we can prove properties of the contract for higher assurance. The project is part of [AgileVentures](https://www.agileventures.org/projects/y), and we mob program on it every [Thursday at 5pm UTC](https://www.agileventures.org/events/y-mob-programming). If you'd like to work on it now, contact me through Y's channel on AgileVentures' Slack.
 
 ### Plan right now
 
