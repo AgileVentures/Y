@@ -8,7 +8,7 @@ Y could raise enough money to take over from the tax system, and let enough peop
 
 Rather than waiting for a seller (say, a global corporation) to make sales before taxing them, Y takes tax (actually, a voluntary donation set by the seller) from the sale. The more a seller chooses to donate from the sale, the more sales they'll make. The buyer/global citizen sets what the donation will go to.
 
-As it stands, Y is a smart contract that handles this process out in the open (on the blockchain), so neither the buyer nor the seller have to trust each other to make the donation. The same idea could be implemented by a bank, but then you'd have to trust the bank, and hope that it'd stay in business.
+As it stands, Y is a smart contract that handles this process out in the open (on the blockchain), so neither the buyer nor the seller have to trust each other to make the donation. The same idea could be implemented by a bank, but then you'd have to trust the bank, and hope that it stays in business.
 
 ## Development
 
