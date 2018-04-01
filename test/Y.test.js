@@ -11,6 +11,8 @@ contract("Y", accounts => {
   const payee = accounts[2];
   const donee = accounts[3];
 
+  const oneEtherInWei = web3.toWei(1, "ether");
+
   beforeEach(async function() {
     y = await Y.new(25, 100, { from: payee });
   });
@@ -75,16 +77,15 @@ contract("Y", accounts => {
         donee: await web3.eth.getBalance(donee)
       };
     };
-    const oneEther = web3.toWei(1, "ether");
     const donation = web3.toWei(0.25, "ether");
     const balancesBefore = await balances();
 
-    await y.payAndDonate(25, 100, donee, { from: payer, value: oneEther });
+    await y.payAndDonate(25, 100, donee, { from: payer, value: oneEtherInWei });
 
     const balancesAfter = await balances();
     assert.isTrue(
       balancesAfter.payee.equals(
-        balancesBefore.payee.plus(oneEther - donation)
+        balancesBefore.payee.plus(oneEtherInWei - donation)
       ), // TODO BigNumber arithmetic
       "payee"
     );
@@ -105,4 +106,65 @@ contract("Y", accounts => {
       y.payAndDonate(num, denom, donee, { from: payer, value: 5 })
     );
   });
+
+  // The only way Ether can get stuck in a contract is via its payable functions.
+  // The only payable function on Y is payAndDonate.
+  // If money gets stuck in the contract, there must be some chance that it can be unstuck, rather than lost forever.
+  // The Ether stuck in a contract does not say who it came from. The caller of the unstick function will have to specify the address to send the Ether to.
+  // More than one person's Ether could get stuck in the contract at once, and it gets lumped together. The caller of the unstick function will have to specify how much to send.
+
+  // it("returns money to single buyer", async () => {
+  //   // Get balances
+  //   const balances = async () => {
+  //     return {
+  //       payer: await web3.eth.getBalance(payer),
+  //       contract: await web3.eth.getBalance(y.address)
+  //     };
+  //
+  //     // Return balance to payer
+  //     const balancesBefore = await balances();
+  //     await y.unstickWei(balancesBefore.contract);
+  //     const balancesAfter = await balances();
+  //
+  //     assert.equal(balancesBefore.payer + contract, balancesAfter.payer);
+  //
+  //     // Assert balance was returned
+  //   };
+  // });
+
+  it("sends specified amount of stuck wei to specified address", async () => {
+    const wei = oneEtherInWei;
+
+    const balances = async () => ({
+      contract: await web3.eth.getBalance(y.address),
+      payer: await web3.eth.getBalance(payer)
+    });
+
+    await y.stickWei({ value: wei });
+
+    const balancesBefore = await balances();
+
+    await y.unstickWei(payer, wei, { from: payee });
+
+    const balancesAfter = await balances();
+
+    assert.isTrue(
+      balancesAfter.contract.equals(balancesBefore.contract.minus(wei)),
+      "contract balance only decreases by wei"
+    );
+    assert.isTrue(
+      balancesAfter.payer.equals(balancesBefore.payer.plus(wei)),
+      "payer balance increases by wei"
+    );
+  });
+
+  it("throws if someone other than the payee tries to unstick stuck wei", async () => {
+    await y.stickWei({ value: oneEtherInWei });
+
+    assert.isRejected(y.unstickWei(payer, oneEtherInWei, { from: payer }));
+  });
+
+  // it("does something", async () => {
+  //   y.xyz; // truffle test: "ReferenceError: xyz is not defined"
+  // });
 });
