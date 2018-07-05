@@ -1,5 +1,122 @@
 <div id="main"></div>
 <script src="main.js"></script>
 <script>
-  var app = Elm.Main.fullscreen("1%");
+window.addEventListener("load", () => {
+  function proportionToPercent(num, denom) {
+    return (
+      num
+        .div(denom)
+        .mul(100)
+        .toString() + "%"
+    );
+  }
+  var obj = web3.eth.contract([
+    {
+      constant: true,
+      inputs: [],
+      name: "donationProportion",
+      outputs: [
+        {
+          name: "num",
+          type: "uint256"
+        },
+        {
+          name: "denom",
+          type: "uint256"
+        }
+      ],
+      payable: false,
+      stateMutability: "view",
+      type: "function"
+    },
+    {
+      inputs: [
+        {
+          name: "num",
+          type: "uint256"
+        },
+        {
+          name: "denom",
+          type: "uint256"
+        }
+      ],
+      payable: false,
+      stateMutability: "nonpayable",
+      type: "constructor"
+    },
+    {
+      constant: false,
+      inputs: [
+        {
+          name: "num",
+          type: "uint256"
+        },
+        {
+          name: "denom",
+          type: "uint256"
+        },
+        {
+          name: "donee",
+          type: "address"
+        }
+      ],
+      name: "payAndDonate",
+      outputs: [
+        {
+          name: "success",
+          type: "bool"
+        }
+      ],
+      payable: true,
+      stateMutability: "payable",
+      type: "function"
+    },
+    {
+      constant: false,
+      inputs: [
+        {
+          name: "num",
+          type: "uint256"
+        },
+        {
+          name: "denom",
+          type: "uint256"
+        }
+      ],
+      name: "setDonationProportion",
+      outputs: [],
+      payable: false,
+      stateMutability: "nonpayable",
+      type: "function"
+    },
+    {
+      constant: false,
+      inputs: [
+        {
+          name: "recipient",
+          type: "address"
+        },
+        {
+          name: "wei_",
+          type: "uint256"
+        }
+      ],
+      name: "unstickWei",
+      outputs: [],
+      payable: false,
+      stateMutability: "nonpayable",
+      type: "function"
+    }
+  ]);
+  var inst = obj.at(
+    new URLSearchParams(location.search.slice(1)).get("address")
+  ); // refactor
+  var app;
+  inst.donationProportion(
+    (err, proportion) =>
+      (app = Elm.Main.fullscreen(
+        proportionToPercent(proportion[0], proportion[1])
+      ))
+  );
+});
 </script>
