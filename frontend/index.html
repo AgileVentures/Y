@@ -1,122 +1,153 @@
 <div id="main"></div>
 <script src="main.js"></script>
+<script src="http://peterolson.github.com/BigRational.js/BigInt_BigRat.min.js"></script>
 <script>
+let contract;
 window.addEventListener("load", () => {
-  function proportionToPercent(num, denom) {
-    return (
-      num
-        .div(denom)
-        .mul(100)
-        .toString() + "%"
+  contract = web3.eth
+    .contract([
+      {
+        constant: true,
+        inputs: [],
+        name: "donationProportion",
+        outputs: [
+          {
+            name: "num",
+            type: "uint256"
+          },
+          {
+            name: "denom",
+            type: "uint256"
+          }
+        ],
+        payable: false,
+        stateMutability: "view",
+        type: "function"
+      },
+      {
+        inputs: [
+          {
+            name: "num",
+            type: "uint256"
+          },
+          {
+            name: "denom",
+            type: "uint256"
+          }
+        ],
+        payable: false,
+        stateMutability: "nonpayable",
+        type: "constructor"
+      },
+      {
+        constant: false,
+        inputs: [
+          {
+            name: "num",
+            type: "uint256"
+          },
+          {
+            name: "denom",
+            type: "uint256"
+          },
+          {
+            name: "donee",
+            type: "address"
+          }
+        ],
+        name: "payAndDonate",
+        outputs: [
+          {
+            name: "success",
+            type: "bool"
+          }
+        ],
+        payable: true,
+        stateMutability: "payable",
+        type: "function"
+      },
+      {
+        constant: false,
+        inputs: [
+          {
+            name: "num",
+            type: "uint256"
+          },
+          {
+            name: "denom",
+            type: "uint256"
+          }
+        ],
+        name: "setDonationProportion",
+        outputs: [],
+        payable: false,
+        stateMutability: "nonpayable",
+        type: "function"
+      },
+      {
+        constant: false,
+        inputs: [
+          {
+            name: "recipient",
+            type: "address"
+          },
+          {
+            name: "wei_",
+            type: "uint256"
+          }
+        ],
+        name: "unstickWei",
+        outputs: [],
+        payable: false,
+        stateMutability: "nonpayable",
+        type: "function"
+      }
+    ])
+    .at(
+      new URLSearchParams(location.search.slice(1)).get("address") // refactor
     );
-  }
-  var obj = web3.eth.contract([
-    {
-      constant: true,
-      inputs: [],
-      name: "donationProportion",
-      outputs: [
-        {
-          name: "num",
-          type: "uint256"
-        },
-        {
-          name: "denom",
-          type: "uint256"
-        }
-      ],
-      payable: false,
-      stateMutability: "view",
-      type: "function"
-    },
-    {
-      inputs: [
-        {
-          name: "num",
-          type: "uint256"
-        },
-        {
-          name: "denom",
-          type: "uint256"
-        }
-      ],
-      payable: false,
-      stateMutability: "nonpayable",
-      type: "constructor"
-    },
-    {
-      constant: false,
-      inputs: [
-        {
-          name: "num",
-          type: "uint256"
-        },
-        {
-          name: "denom",
-          type: "uint256"
-        },
-        {
-          name: "donee",
-          type: "address"
-        }
-      ],
-      name: "payAndDonate",
-      outputs: [
-        {
-          name: "success",
-          type: "bool"
-        }
-      ],
-      payable: true,
-      stateMutability: "payable",
-      type: "function"
-    },
-    {
-      constant: false,
-      inputs: [
-        {
-          name: "num",
-          type: "uint256"
-        },
-        {
-          name: "denom",
-          type: "uint256"
-        }
-      ],
-      name: "setDonationProportion",
-      outputs: [],
-      payable: false,
-      stateMutability: "nonpayable",
-      type: "function"
-    },
-    {
-      constant: false,
-      inputs: [
-        {
-          name: "recipient",
-          type: "address"
-        },
-        {
-          name: "wei_",
-          type: "uint256"
-        }
-      ],
-      name: "unstickWei",
-      outputs: [],
-      payable: false,
-      stateMutability: "nonpayable",
-      type: "function"
-    }
-  ]);
-  var inst = obj.at(
-    new URLSearchParams(location.search.slice(1)).get("address")
-  ); // refactor
-  var app;
-  inst.donationProportion(
-    (err, proportion) =>
-      (app = Elm.Main.fullscreen(
-        proportionToPercent(proportion[0], proportion[1])
-      ))
-  );
+
+  donationPercent((error, percent) => {
+    let elmApp;
+
+    elmApp = Elm.Main.fullscreen(percent);
+    elmApp.ports.payAndDonate.subscribe(({ percent, donee, ether }) =>
+      payAndDonate(percent, donee, ether, (error, success) => {})
+    );
+  });
 });
+
+const donationPercent = errorback => {
+  contract.donationProportion((error, [num, denom]) => {
+    function proportionToPercent(num, denom) {
+      return (
+        num
+          .div(denom)
+          .mul(100)
+          .toString() + "%"
+      );
+    }
+
+    errorback(error, proportionToPercent(num, denom));
+  });
+};
+
+const payAndDonate = (percent, donee, ether, errorback) => {
+  const percentToProportion = percent => {
+    const { num, denom } = bigRat(percent).divide(100);
+    return { num: num.toString(), denom: denom.toString() };
+  };
+
+  const { num, denom } = percentToProportion(percent);
+
+  contract.payAndDonate(
+    num,
+    denom,
+    donee,
+    {
+      value: web3.toWei(ether, "ether")
+    },
+    errorback
+  );
+};
 </script>
