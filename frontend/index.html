@@ -1,4 +1,3 @@
-<div id="main"></div>
 <script src="main.js"></script>
 <script src="http://peterolson.github.com/BigRational.js/BigInt_BigRat.min.js"></script>
 <script>
@@ -108,11 +107,13 @@ window.addEventListener("load", () => {
     );
 
   donationPercent((error, percent) => {
-    let elmApp;
+    let app; // Elm app
 
-    elmApp = Elm.Main.fullscreen(percent);
-    elmApp.ports.payAndDonate.subscribe(({ percent, donee, ether }) =>
-      payAndDonate(percent, donee, ether, (error, success) => {})
+    app = Elm.Main.fullscreen(percent);
+    app.ports.payAndDonate.subscribe(({ percent, donee, ether }) =>
+      payAndDonate(percent, donee, ether, (error, success) =>
+        app.ports.txID.send(success)
+      )
     );
   });
 });
@@ -120,12 +121,10 @@ window.addEventListener("load", () => {
 const donationPercent = errorback => {
   contract.donationProportion((error, [num, denom]) => {
     function proportionToPercent(num, denom) {
-      return (
-        num
-          .div(denom)
-          .mul(100)
-          .toString() + "%"
-      );
+      return num
+        .div(denom)
+        .mul(100)
+        .toString();
     }
 
     errorback(error, proportionToPercent(num, denom));
