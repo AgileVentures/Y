@@ -33,14 +33,21 @@ type Msg
 
 
 type alias Model =
-    { percent : String, donee : String, ether : String, txID : String }
+    { percent : String
+    , donee : String
+    , ether : String
+    , txID : String
+    , payee : String
+    }
 
 
-init percent =
+init : { percent : String, payee : String } -> ( Model, Cmd Msg )
+init { percent, payee } =
     ( { percent = percent
       , donee = ""
       , ether = ""
       , txID = ""
+      , payee = payee
       }
     , Cmd.none
     )
@@ -72,14 +79,21 @@ view model =
     case model.txID of
         "" ->
             div []
-                [ div [] [ text (model.percent ++ "% donation") ]
+                [ div [] []
                 , Html.form [ onSubmit PayAndDonate ]
-                    [ label []
-                        [ text "Donate to"
-                        , input [ placeholder "Ethereum address", onInput Donee ] []
+                    [ p []
+                        [ label []
+                            [ text ("Pay " ++ model.payee ++ " ")
+                            , input [ type_ "number", Html.Attributes.min "0", required True, onInput Ether ] []
+                            , text " Ether"
+                            ]
+                        , label []
+                            [ text (", donating " ++ model.percent ++ "% to ")
+                            , input [ placeholder "Ethereum address", pattern "0x[a-fA-F0-9]{40}", title "an Ethereum address", required True, onInput Donee ] []
+                            ]
+                        , text ". "
+                        , input [ type_ "submit" ] []
                         ]
-                    , label [] [ text "Pay", input [ onInput Ether ] [], text "Ether" ]
-                    , button [{- type = submit? -}] [ text "Pay And Donate" ]
                     ]
                 ]
 
