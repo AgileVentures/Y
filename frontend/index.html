@@ -2,9 +2,11 @@
 <script src="http://peterolson.github.com/BigRational.js/BigInt_BigRat.min.js"></script>
 <script>
 let contract;
+
+const getURLSearchParam = param =>
+  new URLSearchParams(location.search.slice(1)).get(param); // refactor
+
 window.addEventListener("load", () => {
-  const getURLSearchParam = param =>
-    new URLSearchParams(location.search.slice(1)).get(param); // refactor
   contract = web3.eth
     .contract([
       {
@@ -109,7 +111,11 @@ window.addEventListener("load", () => {
   donationPercent((error, percent) => {
     let app; // Elm app
 
-    app = Elm.Main.fullscreen({ percent, payee: getURLSearchParam("payee") });
+    app = Elm.Main.fullscreen({
+      percent,
+      payee: getURLSearchParam("payee"),
+      ether: getURLSearchParam("ether")
+    });
     app.ports.payAndDonate.subscribe(({ percent, donee, ether }) =>
       payAndDonate(percent, donee, ether, (error, success) =>
         app.ports.txID.send(success)

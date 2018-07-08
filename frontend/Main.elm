@@ -41,11 +41,11 @@ type alias Model =
     }
 
 
-init : { percent : String, payee : String } -> ( Model, Cmd Msg )
-init { percent, payee } =
+init : { percent : String, payee : String, ether : String } -> ( Model, Cmd Msg )
+init { percent, payee, ether } =
     ( { percent = percent
       , donee = ""
-      , ether = ""
+      , ether = ether
       , txID = ""
       , payee = payee
       }
@@ -82,14 +82,10 @@ view model =
                 [ div [] []
                 , Html.form [ onSubmit PayAndDonate ]
                     [ p []
-                        [ label []
-                            [ text ("Pay " ++ model.payee ++ " ")
-                            , input [ type_ "number", Html.Attributes.min "0", required True, onInput Ether ] []
-                            , text " Ether"
-                            ]
+                        [ text ("Pay " ++ model.payee ++ " " ++ model.ether ++ " Ether")
                         , label []
                             [ text (", donating " ++ model.percent ++ "% to ")
-                            , input [ placeholder "Ethereum address", pattern "0x[a-fA-F0-9]{40}", title "an Ethereum address", required True, onInput Donee ] []
+                            , input [ placeholder "Ethereum address", pattern "0x[a-fA-F0-9]{40}", title "0x followed by 40 characters from a to F, 0 to 9", required True, onInput Donee ] []
                             ]
                         , text ". "
                         , input [ type_ "submit" ] []
