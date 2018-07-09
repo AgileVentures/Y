@@ -1,111 +1,13 @@
+<title>Y</title>
 <script src="main.js"></script>
 <script src="http://peterolson.github.com/BigRational.js/BigInt_BigRat.min.js"></script>
+<script src="utils.js" charset="utf-8"></script> <!-- see about using ES6 imports instead -->
 <script>
 let contract;
 
-const getURLSearchParam = param =>
-  new URLSearchParams(location.search.slice(1)).get(param); // refactor
-
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
   contract = web3.eth
-    .contract([
-      {
-        constant: true,
-        inputs: [],
-        name: "donationProportion",
-        outputs: [
-          {
-            name: "num",
-            type: "uint256"
-          },
-          {
-            name: "denom",
-            type: "uint256"
-          }
-        ],
-        payable: false,
-        stateMutability: "view",
-        type: "function"
-      },
-      {
-        inputs: [
-          {
-            name: "num",
-            type: "uint256"
-          },
-          {
-            name: "denom",
-            type: "uint256"
-          }
-        ],
-        payable: false,
-        stateMutability: "nonpayable",
-        type: "constructor"
-      },
-      {
-        constant: false,
-        inputs: [
-          {
-            name: "num",
-            type: "uint256"
-          },
-          {
-            name: "denom",
-            type: "uint256"
-          },
-          {
-            name: "donee",
-            type: "address"
-          }
-        ],
-        name: "payAndDonate",
-        outputs: [
-          {
-            name: "success",
-            type: "bool"
-          }
-        ],
-        payable: true,
-        stateMutability: "payable",
-        type: "function"
-      },
-      {
-        constant: false,
-        inputs: [
-          {
-            name: "num",
-            type: "uint256"
-          },
-          {
-            name: "denom",
-            type: "uint256"
-          }
-        ],
-        name: "setDonationProportion",
-        outputs: [],
-        payable: false,
-        stateMutability: "nonpayable",
-        type: "function"
-      },
-      {
-        constant: false,
-        inputs: [
-          {
-            name: "recipient",
-            type: "address"
-          },
-          {
-            name: "wei_",
-            type: "uint256"
-          }
-        ],
-        name: "unstickWei",
-        outputs: [],
-        payable: false,
-        stateMutability: "nonpayable",
-        type: "function"
-      }
-    ])
+    .contract((await fetch("Y.json").then(res => res.json())).abi)
     .at(getURLSearchParam("address"));
 
   donationPercent((error, percent) => {
@@ -116,11 +18,12 @@ window.addEventListener("load", () => {
       payee: getURLSearchParam("payee"),
       ether: getURLSearchParam("ether")
     });
-    app.ports.payAndDonate.subscribe(({ percent, donee, ether }) =>
+    app.ports.payAndDonate.subscribe(({ percent, donee, ether }) => {
       payAndDonate(percent, donee, ether, (error, success) =>
-        app.ports.txID.send(success)
-      )
-    );
+        app.ports.paid.send(null)
+      );
+      app.ports.paying.send(null);
+    });
   });
 });
 
@@ -138,11 +41,6 @@ const donationPercent = errorback => {
 };
 
 const payAndDonate = (percent, donee, ether, errorback) => {
-  const percentToProportion = percent => {
-    const { num, denom } = bigRat(percent).divide(100);
-    return { num: num.toString(), denom: denom.toString() };
-  };
-
   const { num, denom } = percentToProportion(percent);
 
   contract.payAndDonate(
