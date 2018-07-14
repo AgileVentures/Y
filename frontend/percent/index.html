@@ -1,0 +1,31 @@
+<title>Y</title>
+<script src="main.js" charset="utf-8"></script>
+<script src="http://peterolson.github.com/BigRational.js/BigInt_BigRat.min.js"></script>
+<script src="../utils.js" charset="utf-8"></script>
+<script type="text/javascript">
+window.addEventListener("load", () => {
+  const app = Elm.Main.fullscreen();
+
+  app.ports.setPercent.subscribe(
+    async percent =>
+      await setDonationPercent(percent, (error, _) => {
+        app.ports.percentSet.send(null);
+      })
+  );
+});
+
+async function setDonationPercent(percent, errorback) {
+  const { num, denom } = percentToProportion(percent);
+  const yJSON = await fetch("../Y2.json").then(res => res.json());
+  const Y = web3.eth.contract(yJSON.abi);
+
+  // set donation proportion on contract, or deploy a new contract with that proportion
+
+  // set the percent on the contract
+  Y.at("0x7684b9147e762abbedb8a8e9ff8d6e032fdc4cb9").setDonationProportion(
+    num,
+    denom,
+    errorback
+  ); // TODO get contract address depending on which network it's on
+}
+</script>

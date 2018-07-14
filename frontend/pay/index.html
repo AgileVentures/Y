@@ -1,0 +1,76 @@
+<title>Y</title>
+<script src="main.js"></script>
+<script src="http://peterolson.github.com/BigRational.js/BigInt_BigRat.min.js"></script>
+<script src="../utils.js" charset="utf-8"></script> <!-- see about using ES6 imports instead -->
+<script>
+let contract;
+
+window.addEventListener("load", async () => {
+  contract = web3.eth
+    .contract((await fetch("../Y2.json").then(res => res.json())).abi)
+    .at("0x7684b9147e762abbedb8a8e9ff8d6e032fdc4cb9");
+
+  // if there's a payee address in the URL, get the donation percent then start the Elm program with it, else just start the Elm program without it
+
+  const payeeAddress = getURLSearchParam("payeeAddress");
+  // if (getURLSearchParam("payeeAddress") !== null) {
+  donationPercent(payeeAddress, (error, percent) => {
+    let app; // Elm app
+
+    app = Elm.Main.fullscreen({
+      percent,
+      payee: { address: payeeAddress, name: getURLSearchParam("payee") },
+      ether: getURLSearchParam("ether")
+    });
+    app.ports.payAndDonate.subscribe(({ payee, percent, donee, ether }) => {
+      payAndDonate(payee, donee, percent, ether, (error, success) =>
+        app.ports.paid.send(null)
+      );
+      app.ports.paying.send(null);
+    });
+  });
+  /*} else {
+    let app; // Elm app
+
+    app = Elm.Main.fullscreen({
+      percent: null,
+      payee: getURLSearchParam("payee"),
+      ether: getURLSearchParam("ether")
+    });
+    app.ports.payAndDonate.subscribe(({ percent, donee, ether }) => {
+      payAndDonate(percent, donee, ether, (error, success) =>
+        app.ports.paid.send(null)
+      );
+      app.ports.paying.send(null);
+    });
+  }*/
+});
+
+const donationPercent = (payee, errorback) => {
+  contract.getDonationProportion(payee, (error, [num, denom]) => {
+    function proportionToPercent(num, denom) {
+      return num
+        .div(denom)
+        .mul(100)
+        .toString();
+    }
+
+    errorback(error, proportionToPercent(num, denom));
+  });
+};
+
+const payAndDonate = (payee, donee, percent, ether, errorback) => {
+  const { num, denom } = percentToProportion(percent);
+
+  contract.payAndDonate(
+    payee,
+    donee,
+    num,
+    denom,
+    {
+      value: web3.toWei(ether, "ether")
+    },
+    errorback
+  );
+};
+</script>
