@@ -19,6 +19,7 @@ type alias Model =
     { percent : String
     , status : Percent.Percent
     , address : String
+    , host : String
     }
 
 
@@ -28,7 +29,7 @@ port setPercent : String -> Cmd msg
 port settingPercent : (() -> msg) -> Sub msg
 
 
-port percentSet : (String -> msg) -> Sub msg
+port percentSet : ({ address : String, host : String } -> msg) -> Sub msg
 
 
 init : ( Model, Cmd Msg )
@@ -36,6 +37,7 @@ init =
     ( { percent = ""
       , status = Percent.Unset
       , address = ""
+      , host = ""
       }
     , Cmd.none
     )
@@ -45,7 +47,7 @@ type Msg
     = Percent String
     | SetPercent
     | SettingPercent ()
-    | PercentSet String
+    | PercentSet { address : String, host : String }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -60,8 +62,8 @@ update msg model =
         SettingPercent _ ->
             ( { model | status = Percent.Setting }, Cmd.none )
 
-        PercentSet address ->
-            ( { model | status = Percent.Set, address = address }, Cmd.none )
+        PercentSet { address, host } ->
+            ( { model | status = Percent.Set, address = address, host = host }, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -102,7 +104,7 @@ view model =
             Set ->
                 p []
                     [ p [] [ text "Set." ]
-                    , p [] [ a [ href ("http://localhost:8000/pay/?payeeAddress=" ++ model.address) ] [ text "Payment link" ] ]
+                    , p [] [ a [ href (model.host ++ "/pay/?payeeAddress=" ++ model.address) ] [ text "Payment link" ] ]
                     ]
         ]
 

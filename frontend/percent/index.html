@@ -10,7 +10,10 @@ window.addEventListener("load", () => {
     async percent =>
       await setDonationPercent(percent, (error, txHash) => {
         web3.eth.getTransaction(txHash, (error, txObj) => {
-          app.ports.percentSet.send(txObj.from);
+          app.ports.percentSet.send({
+            address: txObj.from,
+            host: new URL(window.location.href).origin
+          });
         });
       })
   );
