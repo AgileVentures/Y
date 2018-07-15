@@ -2,7 +2,7 @@ port module Main exposing (..)
 
 import Payment exposing (Payment)
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes as Attr exposing (..)
 import Html.Events exposing (..)
 
 
@@ -34,6 +34,33 @@ port paying : (() -> msg) -> Sub msg
 port paid : (() -> msg) -> Sub msg
 
 
+type alias Model =
+    { percent : {- Maybe -} String
+    , donee : String
+    , ether : String
+    , payment : Payment.Payment
+    , payee : { address : String {- , name : String -} }
+    }
+
+
+init :
+    { percent : {- Maybe -} String
+    , payee :
+        { address : String {- , name : String -} }
+        -- , ether : Maybe String
+    }
+    -> ( Model, Cmd Msg )
+init { percent, payee {- , ether -} } =
+    ( { percent = percent
+      , donee = ""
+      , ether = ""
+      , payment = Payment.Unpaid
+      , payee = payee
+      }
+    , Cmd.none
+    )
+
+
 type Msg
     = {- Payee String
          | GetPercent
@@ -44,27 +71,6 @@ type Msg
     | Donee String
     | Paying ()
     | Paid ()
-
-
-type alias Model =
-    { percent : {- Maybe -} String
-    , donee : String
-    , ether : String
-    , payment : Payment.Payment
-    , payee : { address : String, name : String }
-    }
-
-
-init : { percent : {- Maybe -} String, payee : { address : String, name : String }, ether : String } -> ( Model, Cmd Msg )
-init { percent, payee, ether } =
-    ( { percent = percent
-      , donee = ""
-      , ether = ether
-      , payment = Payment.Unpaid
-      , payee = payee
-      }
-    , Cmd.none
-    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -143,7 +149,11 @@ view model =
                 -}
                 Html.form [ onSubmit PayAndDonate ]
                     [ p []
-                        [ text ("Pay " ++ model.payee.name ++ " " ++ model.ether ++ " Ether")
+                        [ text ("Pay " ++ model.payee.address ++ " ")
+                        , label []
+                            [ input [ onInput Ether, type_ "number", Attr.min "0", step "any" ] []
+                            , text " Ether"
+                            ]
                         , label []
                             [ text (", donating " ++ model.percent ++ "% to ")
                             , input

@@ -8,8 +8,10 @@ window.addEventListener("load", () => {
 
   app.ports.setPercent.subscribe(
     async percent =>
-      await setDonationPercent(percent, (error, _) => {
-        app.ports.percentSet.send(null);
+      await setDonationPercent(percent, (error, txHash) => {
+        web3.eth.getTransaction(txHash, (error, txObj) => {
+          app.ports.percentSet.send(txObj.from);
+        });
       })
   );
 });
@@ -22,7 +24,7 @@ async function setDonationPercent(percent, errorback) {
   // set donation proportion on contract, or deploy a new contract with that proportion
 
   // set the percent on the contract
-  Y.at("0x7684b9147e762abbedb8a8e9ff8d6e032fdc4cb9").setDonationProportion(
+  Y.at("0xdf43dce36fac2b0950ff5dd72d0cc716cbdb7bc8").setDonationProportion(
     num,
     denom,
     errorback

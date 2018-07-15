@@ -1,5 +1,8 @@
 node_modules
 personal
-frontend/elm-stuff
-frontend/main.js
+frontend/pay/elm-stuff
+frontend/pay/node_modules
+frontend/percent/elm-stuff
+frontend/pay/main.js
+frontend/percent/main.js
 build

@@ -8,7 +8,7 @@ let contract;
 window.addEventListener("load", async () => {
   contract = web3.eth
     .contract((await fetch("../Y2.json").then(res => res.json())).abi)
-    .at("0x7684b9147e762abbedb8a8e9ff8d6e032fdc4cb9");
+    .at("0xdf43dce36fac2b0950ff5dd72d0cc716cbdb7bc8");
 
   // if there's a payee address in the URL, get the donation percent then start the Elm program with it, else just start the Elm program without it
 
